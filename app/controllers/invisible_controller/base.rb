@@ -1,7 +1,5 @@
-require "action_controller"
-require "active_record"
 module InvisibleController
-  class Base < (Kernel.const_defined?('ApplicationController') ? Kernel.get_const('ApplicationController') : ActionController::Base)
+  class Base < ::ApplicationController
     authorize_resource if respond_to?('authorize_resource')
     RESTFUL_ACTIONS = [:index,:create,:new,:edit,:show,:update,:destroy]
     before_filter :load_resource, only: RESTFUL_ACTIONS

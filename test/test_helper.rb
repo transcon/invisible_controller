@@ -1,20 +1,14 @@
+require 'action_controller'
+class ApplicationController < ActionController::Base
+end
 require 'minitest/autorun'
 require 'invisible_controller'
 require 'minitest/reporters'
 require 'flying_table'
 require 'rails'
 require 'rails/test_help'
-
-
-require "active_model/railtie"
-require "active_job/railtie"
-require "active_record/railtie"
-require "action_controller/railtie"
-require "action_mailer/railtie"
-require "action_view/railtie"
-require "sprockets/railtie"
-require "rails/test_unit/railtie"
-
+$:.unshift File.expand_path(File.dirname(__FILE__) + '/../app/controllers')
+require 'invisible_controller/base'
 
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
 
