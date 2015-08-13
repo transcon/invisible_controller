@@ -38,7 +38,7 @@ module InvisibleController
     end
     def respond
       respond_to do |format|
-        format.html {render layout: !request.headers['angular']}
+        format.html {render layout: !request.headers['angular'], template: template}
         format.json {
           render json: {}, status: 204  if params[:suppress]
           render json: resource     unless params[:suppress]
@@ -50,6 +50,7 @@ module InvisibleController
     def controller_name() params[:controller].to_s end
     def resource_name()   index? ? controller_name : controller_name.singularize end
     def resource()        @resource ||= define_resource end
+    def template()        "#{controller_name}/#{params[:action]}" end
 
       #belongs_to Functionality
     def nested?()                   self.class.instance_variable_get('@nested') end
