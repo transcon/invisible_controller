@@ -5,10 +5,8 @@ module InvisibleController
     before_filter :load_resource, only: RESTFUL_ACTIONS
 
     def self.belongs_to(parent_klass,args={})
-      @nested       = true
-      @shallow      = !!args[:shallow]
-      @nested_name  = args[:as]
-      @parent_name  = parent_klass.to_s
+      @as ||= HashWithIndifferentAccess.new
+      @as[parent_klass] = args[:as]
     end
 
     RESTFUL_ACTIONS.each do |method|
@@ -46,22 +44,23 @@ module InvisibleController
         format.xml  {render xml:  resource}
       end
     end
-    def load_resource()   instance_variable_set("@#{resource_name}", resource) end
+    def load_resource()
+      instance_variable_set("@#{resource_name}", resource)
+      instance_variable_set("@#{parent_name}", parent_resource) if nested?
+    end
     def controller_name() params[:controller].to_s end
     def resource_name()   index? ? controller_name : controller_name.singularize end
+    def nested_name()     (self.class.instance_variable_get('@as') || {})[parent_name] end
     def resource()        @resource ||= define_resource end
     def template()        "#{controller_name}/#{params[:action]}" end
 
       #belongs_to Functionality
-    def nested?()                   self.class.instance_variable_get('@nested') end
-    def shallow?()                  self.class.instance_variable_get('@shallow') end
-    def parent_name()               self.class.instance_variable_get('@parent_name') end
-    def nested_name()               self.class.instance_variable_get('@nested_name') end
+    def nested?()                   parent_name.split('.')[0].singularize != resource_name.singularize end
+    def parent_name()               request.path.split('/')[1].singularize end
 
-    def parent_resource()           parent_name.classify.constantize.find(parent_id) end
+    def parent_resource()           @parent_resource ||= parent_name.classify.constantize.find(parent_id) end
     def parent_id()                 params["#{parent_name}_id"] end
-    def nested_and_indifferent?()   nested? && (!shallow? || index? || new? || create?) end
-    def active_class()              nested_and_indifferent? ? parent_resource.send(nested_name || resource_name.pluralize) : klass end
+    def active_class()              nested? ? parent_resource.send(nested_name || resource_name.pluralize) : klass end
 
     def define_resource()
       return nil                                   unless !!(klass < ActiveRecord::Base)

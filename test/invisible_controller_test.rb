@@ -49,9 +49,4 @@ class InvisibleControllerTest <  ActionDispatch::IntegrationTest
     assert_response :success
     assert_raises(ActiveRecord::RecordNotFound) {@test_case.reload}
   end
-
-
-
-
-
 end
