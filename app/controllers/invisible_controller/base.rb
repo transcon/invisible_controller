@@ -9,6 +9,11 @@ module InvisibleController
       @as[parent_klass] = args[:as]
     end
 
+    def self.has_scope(name,options={})
+      raise NameError, "#{name} is an invalid scope name" if [:controller,:action,:format].include?(name.to_sym)
+      @scopes ||= []
+      @scopes << name.to_s
+    end
     RESTFUL_ACTIONS.each do |method|
       define_method("#{method}?") do
         params[:action].to_sym == method
@@ -61,12 +66,17 @@ module InvisibleController
     def parent_resource()           @parent_resource ||= parent_name.classify.constantize.find(parent_id) end
     def parent_id()                 params["#{parent_name}_id"] end
     def active_class()              nested? ? parent_resource.send(nested_name || resource_name.pluralize) : klass end
+    def scoped()                    ((params.keys || []) & (self.class.instance_variable_get("@scopes") || []))[0] end
+    def current_scope()             scoped || :all end
+    def scope_args()                params[current_scope] end
+    def index_with_args?()          index? && scope_args.present? end
 
     def define_resource()
-      return nil                                   unless !!(klass < ActiveRecord::Base)
-      return active_class.all                      if index?
-      return active_class.new(processed_params)    if new?
-      return active_class.create(processed_params) if create?
+      return nil                                      unless !!(klass < ActiveRecord::Base)
+      return active_class.send(current_scope,scope_args)  if index_with_args?
+      return active_class.send(current_scope)             if index?
+      return active_class.new(processed_params)           if new?
+      return active_class.create(processed_params)        if create?
       active_class.find(params[:id])
     end
     def klass()            resource_name.classify.constantize rescue Class end
