@@ -77,8 +77,9 @@ module InvisibleController
       return active_class.send(current_scope)             if index?
       return active_class.new(processed_params)           if new?
       return active_class.create(processed_params)        if create?
-      active_class.find(params[:id])
+      define_singleton_resource
     end
+    def define_singleton_resource() active_class.find(params[:id]) end
     def klass()            resource_name.classify.constantize rescue Class end
     def permitted_params() params.permit( resource_name.to_sym => klass.whitelisted ) end
     def processed_params() permitted_params[resource_name] end
