@@ -25,6 +25,9 @@ module InvisibleController
     def update
       resource.update(processed_params) ? respond : respond_with_errors
     end
+    def create
+      resource.save(processed_params) ? respond : respond_with_errors
+    end
     def destroy
       resource.destroy
       render response: 204, nothing: true
@@ -75,8 +78,7 @@ module InvisibleController
       return nil                                      unless !!(klass < ActiveRecord::Base)
       return active_class.send(current_scope,scope_args)  if index_with_args?
       return active_class.send(current_scope)             if index?
-      return active_class.new(processed_params)           if new?
-      return active_class.create(processed_params)        if create?
+      return active_class.new(processed_params)           if new? || create?
       define_singleton_resource
     end
     def define_singleton_resource() active_class.find(params[:id]) end
