@@ -36,15 +36,19 @@ module ActiveSupport
         rescue NameError => e
           raise unless e.missing_name? qualified_name_for(parent, const_name)
         end
-      # NO CONTROLLER INTERCEPTOR
-      elsif !!(qualified_name =~ /Controller$/)
-        return Object.const_set(qualified_name, InvisibleController::Base)
       end
+      activated_name = before_raise_uninitialized_constant(qualified_name)
+      return  activated_name if activated_name.present?
       # Continue Rails code
       name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
       name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
       raise name_error
     end
+    def before_raise_uninitialized_constant(qualified_name)
+      if !!(qualified_name =~ /Controller$/)
+        return Object.const_set(qualified_name, InvisibleController::Base)
+      end
+      return false
+    end
   end
 end
-# ActiveSupport::Dependencies.send(:include, ActiveSupportExtension)
