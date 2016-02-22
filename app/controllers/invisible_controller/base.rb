@@ -1,8 +1,8 @@
 module InvisibleController
   class Base < ::ApplicationController
-    authorize_resource if respond_to?('authorize_resource')
     RESTFUL_ACTIONS = [:index,:create,:new,:edit,:show,:update,:destroy]
     before_filter :load_resource, only: RESTFUL_ACTIONS
+    authorize_resource if respond_to?('authorize_resource')
 
     def self.belongs_to(parent_klass,args={})
       @as ||= HashWithIndifferentAccess.new
