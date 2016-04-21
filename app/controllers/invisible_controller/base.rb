@@ -50,6 +50,10 @@ module InvisibleController
           render json: resource     unless params[:suppress]
           }
         format.xml  {render xml:  resource}
+        format.pdf  {render pdf:  resource, layout: false}
+        (mimes_for_respond_to.keys - [:html, :xml, :json, :pdf]).each do |mime|
+          format.send(mime) {render mime => resource}
+        end
       end
     end
     def load_resource()
