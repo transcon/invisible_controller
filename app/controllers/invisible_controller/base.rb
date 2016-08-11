@@ -87,7 +87,7 @@ module InvisibleController
     end
     def define_singleton_resource() active_class.find(params[:id]) end
     def klass()            resource_name.classify.constantize rescue Class end
-    def permitted_params() params.permit( resource_name.to_sym => klass.whitelisted ) end
+    def permitted_params() params.permit( resource_name.to_sym => (@resource || klass).whitelisted ) end
     def processed_params() permitted_params[resource_name] end
   end
 end

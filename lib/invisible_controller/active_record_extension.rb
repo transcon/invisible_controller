@@ -15,5 +15,6 @@ module ActiveRecordExtension
       deliverable
     end
   end
+  def whitelisted() self.class.whitelisted end
 end
 ActiveRecord::Base.send(:include, ActiveRecordExtension)
