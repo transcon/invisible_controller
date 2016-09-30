@@ -29,8 +29,11 @@ module InvisibleController
       resource.save(processed_params) ? respond : respond_with_errors
     end
     def destroy
-      resource.destroy
-      render response: 204, nothing: true
+      if resource.destroy
+        render response: 204, nothing: true
+      else
+        render json: resource_with_errors, status: 501
+      end
     end
 
     private
