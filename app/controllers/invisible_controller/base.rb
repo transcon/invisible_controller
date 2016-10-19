@@ -72,10 +72,20 @@ module InvisibleController
       #belongs_to Functionality
     def nested?()                   parent_name.split('.')[0].singularize != resource_name.singularize end
     def parent_name()               request.path.split('/')[1].singularize end
+    def has_one?
+      return false unless parent_resource
+      parent_resource.class.reflect_on_association(resource_name.singularize).present?
+    end
 
-    def parent_resource()           @parent_resource ||= parent_name.classify.constantize.find(parent_id) end
+    def parent_resource()           @parent_resource ||= parent_id.present? ? parent_name.classify.constantize.find(parent_id) : nil end
     def parent_id()                 params["#{parent_name}_id"] end
-    def active_class()              nested? ? parent_resource.send(nested_name || resource_name.pluralize) : klass end
+    def active_class()
+      if nested?
+        return has_one? ? parent_resource : parent_resource.send(nested_name || resource_name.pluralize)
+      else
+        return klass
+      end
+    end
     def scoped()                    ((params.keys || []) & (self.class.instance_variable_get("@scopes") || []))[0] end
     def current_scope()             scoped || :all end
     def scope_args()                params[current_scope] end
@@ -88,7 +98,9 @@ module InvisibleController
       return active_class.new(processed_params)           if new? || create?
       define_singleton_resource
     end
-    def define_singleton_resource() active_class.find(params[:id]) end
+    def define_singleton_resource()
+      has_one? ? active_class.send(resource_name) : active_class.find(params[:id])
+    end
     def klass()            resource_name.classify.constantize rescue Class end
     def permitted_params() params.permit( resource_name.to_sym => (@resource || klass).whitelisted ) end
     def processed_params() permitted_params[resource_name] end
